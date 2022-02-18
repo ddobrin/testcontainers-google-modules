@@ -1,0 +1,22 @@
+steps:
+  # Run Integration tests in Containers
+  - name: maven:3-jdk-11
+    entrypoint: mvn
+    args: ["verify"]
+    dir: 'springboot-gcp/postgres-example'
+
+  # Testing completed --> Build the application
+  - name: maven:3-jdk-11
+    entrypoint: mvn
+    args: ["package", "-Dmaven.test.skip=true"]
+    dir: 'springboot-gcp/postgres-example'
+
+  # Build the image
+  - name: gcr.io/cloud-builders/docker
+    args: ["build", "-f", "Dockerfile", "-t", "us-central1-docker.pkg.dev/$PROJECT_ID/emulators/postgres-example", "."]
+    dir: 'springboot-gcp/postgres-example'
+
+  # Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/emulators/postgres-example']
+

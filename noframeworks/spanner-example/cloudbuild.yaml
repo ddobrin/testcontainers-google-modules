@@ -1,0 +1,21 @@
+steps:
+  # Run Integration tests in Containers
+  - name: maven:3-jdk-11
+    entrypoint: mvn
+    args: ["verify"]
+    dir: 'noframeworks/spanner-example'
+
+  # Testing completed --> Build the application
+  - name: maven:3-jdk-11
+    entrypoint: mvn
+    args: ["package", "-Dmaven.test.skip=true"]
+    dir: 'noframeworks/spanner-example'
+
+  # Build the image
+  - name: gcr.io/cloud-builders/docker
+    args: ["build", "-f", "Dockerfile", "-t", "us-central1-docker.pkg.dev/$PROJECT_ID/emulators/spanner-example", "."]
+    dir: 'noframeworks/spanner-example'
+
+  # Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/emulators/spanner-example']
